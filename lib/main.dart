@@ -1,6 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+//import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-void main() {
+// Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
+// video https://www.youtube.com/watch?v=SmmCMDSj8ZU&list=PLtr8DfMFkiJu0lr1OKTDaoj44g-GGnFsn&index=10&t=291s
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -9,105 +19,203 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'FireStore Demo List',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: FirebaseDemo(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class FirebaseDemo extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _FirebaseDemoState createState() => _FirebaseDemoState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _FirebaseDemoState extends State<FirebaseDemo> {
+  final TextEditingController _newItemTextField = TextEditingController();
+  CollectionReference itemCollectionDB = FirebaseFirestore.instance.collection('ITEMS');
+  //List<String> itemList = [];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  Widget nameTextFieldWidget() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width / 1.7,
+      child: TextField(
+        controller: _newItemTextField,
+        style: TextStyle(fontSize: 22, color: Colors.black),
+        decoration: InputDecoration(
+          hintText: "Item Name",
+          hintStyle: TextStyle(fontSize: 22, color: Colors.black),
+        ),
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+  Widget addButtonWidget() {
+    return SizedBox(
+      child: ElevatedButton(
+          onPressed: () async {
+            //setState(() {
+            //itemList.add(_newItemTextField.text);
+            //_newItemTextField.clear();
+            await itemCollectionDB.add({'item_name': _newItemTextField.text}).then((value) => _newItemTextField.clear());
+            //});
+          },
+          child: Text(
+            'Add Data',
+            style: TextStyle(fontSize: 20),
+          )),
+    );
+  }
+
+  Widget itemInputWidget() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        nameTextFieldWidget(),
+        SizedBox(width: 10,),
+        addButtonWidget(),
+      ],
+    );
+  }
+
+  Widget itemTileWidget(snapshot, position) {
+    return ListTile(
+      leading: Icon(Icons.check_box),
+      title: Text(snapshot.data.docs[position]['item_name']),
+      onTap: () {
+        setState(() {
+          print("You tapped at postion =  $position");
+          String itemId = snapshot.data.docs[position].id;
+          itemCollectionDB.doc(itemId).delete();
+        });
+      },
+    );
+  }
+
+  Widget itemListWidget() {
+    //Collection of users, each user has a collection of items, so each user has an individual list
+    itemCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('ITEMS');
+    return Expanded(
+        child:
+        StreamBuilder(stream: itemCollectionDB.snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              return ListView.builder(
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (BuildContext context, int position) {
+                    return Card(
+                        child: itemTileWidget(snapshot,position)
+                    );
+                  }
+              );
+            })
+    );
+  }
+
+  Widget logoutButton() {
+    return ElevatedButton(
+        onPressed: ()
+        async {
+          //setState(() async {
+          await FirebaseAuth.instance.signOut();
+          print ("Button Logout");
+          // });
+        },
+        child: Text(
+          'Logout',
+          style: TextStyle(fontSize: 20),
+        )
+    );
+  }
+
+  Widget mainScreen() {
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+          children: [
+            itemInputWidget(),
+            SizedBox(height: 40,),
+            itemListWidget(),
+            logoutButton(),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  Widget loginScreen() {
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          children: [
+            Text("Not Logged in"),
+            ElevatedButton(
+                onPressed: ()
+                async {
+                  //setState(() async {
+                  // do authenication
+                  userCredential = await signInWithGoogle();
+                  userID = userCredential.user.uid;
+                  print ("Button onPressed DONE");
+                  // });
+                },
+                child: Text(
+                  'Log in with Google',
+                  style: TextStyle(fontSize: 20),
+                )
+            ),
+            logoutButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ======== Added for Authentication  ========
+  //Checks user credentials in order to sign them in as a user
+
+  UserCredential userCredential;
+  String userID;
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    // Create a new credential
+    final GoogleAuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+  // === Main Build Method ===
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
+        if (snapshot.hasData) {
+          print("User already logged in");
+          //User id is added to the user authentication space on the firebase console
+          userID = FirebaseAuth.instance.currentUser.uid;
+          return mainScreen();
+        }
+        else {
+          return loginScreen();
+        }
+      },
+    );
+  }
+
 }

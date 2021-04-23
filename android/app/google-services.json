@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1082591680482",
+    "project_id": "swimteammgt",
+    "storage_bucket": "swimteammgt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082591680482:android:edb5760cb900d1c2bc4bbb",
+        "android_client_info": {
+          "package_name": "css.swimteam_mgt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1082591680482-1en819anciv1k7akbqc9djt2117n3rsn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "css.swimteam_mgt",
+            "certificate_hash": "e61c45fa29199d04db59327c8a6073f8286b38a4"
+          }
+        },
+        {
+          "client_id": "1082591680482-9cel43fgr5co7048nmfqi5ds4iu5a8m4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9V2CfqwHKOl6rmFONM7jp3FiofMTZjTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1082591680482-9cel43fgr5co7048nmfqi5ds4iu5a8m4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
