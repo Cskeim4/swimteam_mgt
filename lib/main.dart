@@ -5,6 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'swimmer.dart';
+
 // Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
 // video https://www.youtube.com/watch?v=SmmCMDSj8ZU&list=PLtr8DfMFkiJu0lr1OKTDaoj44g-GGnFsn&index=10&t=291s
 
@@ -19,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FireStore Demo List',
+      title: 'Swim Team MGT',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -45,7 +47,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
         controller: _newItemTextField,
         style: TextStyle(fontSize: 22, color: Colors.black),
         decoration: InputDecoration(
-          hintText: "Item Name",
+          hintText: "Enter a Swimmer: ",
           hintStyle: TextStyle(fontSize: 22, color: Colors.black),
         ),
       ),
@@ -62,9 +64,8 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
             await itemCollectionDB.add({'item_name': _newItemTextField.text}).then((value) => _newItemTextField.clear());
             //});
           },
-          child: Text(
-            'Add Data',
-            style: TextStyle(fontSize: 20),
+          child: IconButton(
+            icon: const Icon(Icons.add)
           )),
     );
   }
@@ -83,11 +84,11 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
 
   Widget itemTileWidget(snapshot, position) {
     return ListTile(
-      leading: Icon(Icons.check_box),
+      leading: Icon(Icons.access_time),
       title: Text(snapshot.data.docs[position]['item_name']),
       onTap: () {
         setState(() {
-          print("You tapped at postion =  $position");
+          print("You tapped at position =  $position");
           String itemId = snapshot.data.docs[position].id;
           itemCollectionDB.doc(itemId).delete();
         });
@@ -113,6 +114,31 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
             })
     );
   }
+
+  //Pop-up box for Times button
+  Widget _buildPopupDialog(BuildContext context) {
+    return new AlertDialog(
+      title: const Text('Popup example'),
+      content: new Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text("Times: "),
+        ],
+      ),
+      actions: <Widget>[
+        new FlatButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          textColor: Theme.of(context).primaryColor,
+          child: Text('Close'),
+        ),
+      ],
+    );
+  }
+
+
 
   Widget logoutButton() {
     return ElevatedButton(
