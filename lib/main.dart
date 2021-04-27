@@ -85,6 +85,9 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
   Widget itemTileWidget(snapshot, position) {
     return ListTile(
       leading: Icon(Icons.access_time),
+        //onTap: (){
+
+    //},
       title: Text(snapshot.data.docs[position]['item_name']),
       onTap: () {
         setState(() {
@@ -158,6 +161,9 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
 
   Widget mainScreen() {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Swim Team Name"),
+      ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
         height: MediaQuery.of(context).size.height,
@@ -176,11 +182,15 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
 
   Widget loginScreen() {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Swim Team MGT"),
+      ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Not Logged in"),
             ElevatedButton(

@@ -1,8 +1,14 @@
 
 class private {
-  private id;
-  private name;
-  private image;
+  String _year;
+  String _name;
+  String _time;
+  String _event;
+  String _date;
+
+
+
+
 }
 
 //Widget build(BuildContext context) {
