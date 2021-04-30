@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'swimmer.dart';
+import 'teammember.dart';
 
 // Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
 // video https://www.youtube.com/watch?v=SmmCMDSj8ZU&list=PLtr8DfMFkiJu0lr1OKTDaoj44g-GGnFsn&index=10&t=291s
@@ -84,10 +84,17 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
 
   Widget itemTileWidget(snapshot, position) {
     return ListTile(
-      leading: Icon(Icons.access_time),
-        //onTap: (){
+      leading:
 
-    //},
+        Image(image: AssetImage(getImage(position))),
+      trailing: IconButton (
+          icon : const Icon(Icons.access_time),
+          onPressed: (){
+
+          },
+      )
+
+      ,
       title: Text(snapshot.data.docs[position]['item_name']),
       onTap: () {
         setState(() {
