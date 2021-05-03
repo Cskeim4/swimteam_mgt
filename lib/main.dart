@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'teammember.dart';
+import 'popup_screen.dart';
+
 
 // Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
 // video https://www.youtube.com/watch?v=SmmCMDSj8ZU&list=PLtr8DfMFkiJu0lr1OKTDaoj44g-GGnFsn&index=10&t=291s
@@ -36,15 +38,24 @@ class FirebaseDemo extends StatefulWidget {
 }
 
 class _FirebaseDemoState extends State<FirebaseDemo> {
-  final TextEditingController _newItemTextField = TextEditingController();
-  CollectionReference itemCollectionDB = FirebaseFirestore.instance.collection('ITEMS');
+  //Initialize the DB collections and text fields
+  final TextEditingController _newSwimmerTextField = TextEditingController();
+  final TextEditingController _newTimeTextField = TextEditingController();
+  CollectionReference swimmersCollectionDB = FirebaseFirestore.instance.collection('SWIMMERS');
+  CollectionReference timesCollectionDB = FirebaseFirestore.instance.collection('TIMES');
   //List<String> itemList = [];
 
+
+
+ //== SWIMMER PAGE WIDGETS ==
+
+
+  //Text field widget for entering a swimmer
   Widget nameTextFieldWidget() {
     return SizedBox(
       width: MediaQuery.of(context).size.width / 1.7,
       child: TextField(
-        controller: _newItemTextField,
+        controller: _newSwimmerTextField,
         style: TextStyle(fontSize: 22, color: Colors.black),
         decoration: InputDecoration(
           hintText: "Enter a Swimmer: ",
@@ -54,6 +65,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
+  //Button to add the swimmer to the list
   Widget addButtonWidget() {
     return SizedBox(
       child: ElevatedButton(
@@ -61,16 +73,18 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
             //setState(() {
             //itemList.add(_newItemTextField.text);
             //_newItemTextField.clear();
-            await itemCollectionDB.add({'item_name': _newItemTextField.text}).then((value) => _newItemTextField.clear());
+            //Add the swimmer to the swimmer collection
+            await swimmersCollectionDB.add({'item_name': _newSwimmerTextField.text}).then((value) => _newSwimmerTextField.clear());
             //});
           },
-          child: IconButton(
+          child: IconButton( //icon of a plus sign, when clicked on adds the swimmer to the list
             icon: const Icon(Icons.add)
           )),
     );
   }
 
-  Widget itemInputWidget() {
+  //The input widget for the swimmers, calls the text field and add button widgets for each swimmer created
+  Widget swimmerInputWidget() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -82,42 +96,46 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  Widget itemTileWidget(snapshot, position) {
+  //Tile widget that holds the information gathered about each swimmer
+  Widget swimmerTileWidget(snapshot, position) {
     return ListTile(
       leading:
-
         Image(image: AssetImage(getImage(position))),
+      //Time icon, when clicked on shows a list of the swimmer's times in a dialog pop-up box
       trailing: IconButton (
           icon : const Icon(Icons.access_time),
           onPressed: (){
-
+            _viewTimes;
           },
       )
-
       ,
+      //A snapshot is taken of the data at that position in the list
       title: Text(snapshot.data.docs[position]['item_name']),
-      onTap: () {
+      onLongPress: () {
         setState(() {
           print("You tapped at position =  $position");
           String itemId = snapshot.data.docs[position].id;
-          itemCollectionDB.doc(itemId).delete();
+          //if a position in the list has a long press on it, it will be deleted from the list
+          swimmersCollectionDB.doc(itemId).delete();
         });
       },
     );
   }
 
-  Widget itemListWidget() {
+  //List widget for the swimmers to be added to
+  Widget swimmerListWidget() {
     //Collection of users, each user has a collection of items, so each user has an individual list
-    itemCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('ITEMS');
+    swimmersCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('ITEMS');
     return Expanded(
         child:
-        StreamBuilder(stream: itemCollectionDB.snapshots(),
+            //calls the tile widget to create a tile for each swimmer added to the list
+        StreamBuilder(stream: swimmersCollectionDB.snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               return ListView.builder(
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (BuildContext context, int position) {
                     return Card(
-                        child: itemTileWidget(snapshot,position)
+                        child: swimmerTileWidget(snapshot,position)
                     );
                   }
               );
@@ -125,39 +143,157 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Pop-up box for Times button
-  Widget _buildPopupDialog(BuildContext context) {
-    return new AlertDialog(
-      title: const Text('Popup example'),
-      content: new Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text("Times: "),
-        ],
-      ),
-      actions: <Widget>[
-        new FlatButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          textColor: Theme.of(context).primaryColor,
-          child: Text('Close'),
+  //== END OF SWIMMER PAGE WIDGETS ==
+
+
+
+
+  //== TIMES PAGE WIDGETS ==
+
+  //Pop-up dialog box for Times button
+  void _viewTimes() {
+    int _sizeSelected = 1;
+    showDialog( //Creates a popup window
+        context: context,
+        builder: (context) {
+          return Dialog(
+              child: SizedBox(
+                height: 200,
+                child:  Column(
+                  children: <Widget>[
+                    //A new time can be added to the individual list created for each swimmer in the collection
+                    Text( //Place for the user to enter more times for the swimmer
+                      'Times:',
+                      style: Theme.of(context).textTheme.headline4,
+                    ),
+                    TextField(
+                      controller: _newSwimmerTextField,
+                      style: Theme.of(context).textTheme.headline4,
+                    ),
+                  ElevatedButton( //When clicked adds the time to the swimmer's times list
+                      child: Text('Add Time'),
+                      onPressed: () {
+                        setState(() { //Tells the program there is data that needs updating
+
+                        });
+                      },
+                  ),
+                    //Call to the times list widget
+                    timesListWidget()
+                    //ListView.builder(
+                         // itemCount: 3,
+                          //itemBuilder: (BuildContext context, int position){
+                           // return Text("Example Text");
+                          //}
+                         // ),
+
+                    ],
+                ),
+              )
+          );
+        }
+    );
+  }
+
+  //Text field widget that allows the user to enter times for a given swimmer
+  Widget timeTextFieldWidget() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width / 1.7,
+      child: TextField(
+        controller: _newTimeTextField, //controller is set to the controller for the swimmer's times
+        style: TextStyle(fontSize: 22, color: Colors.black),
+        decoration: InputDecoration(
+          hintText: "Enter a Time: ",
+          hintStyle: TextStyle(fontSize: 22, color: Colors.black),
         ),
+      ),
+    );
+  }
+
+  //Button widget for adding the times to the swimmer's times list
+  Widget addTimesButtonWidget() {
+    return SizedBox(
+      child: ElevatedButton(
+          onPressed: () async {
+            //setState(() {
+            //itemList.add(_newItemTextField.text);
+            //_newItemTextField.clear();
+            await timesCollectionDB.add({'time_input': _newTimeTextField.text}).then((value) => _newTimeTextField.clear());
+            //});
+          },
+          //When the plus button is clicked on, it will add the time to the list
+          child: IconButton(
+              icon: const Icon(Icons.add)
+          )),
+    );
+  }
+
+  //Input widget for the swimmer times, calls the text field and button widgets
+  Widget timeInputWidget() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        timeTextFieldWidget(),
+        SizedBox(width: 10,),
+        addTimesButtonWidget(),
       ],
     );
   }
 
+  //Widget that creates the tile format for each time entered for swimmer
+  Widget timesTileWidget(snapshot, position) {
+    return ListTile(
+      title: Text(snapshot.data.docs[position]['time_input']),
+      //If there is a long press on a time in the list, it will be deleted
+      onLongPress: () {
+        setState(() {
+          print("You tapped at position =  $position");
+          String itemId = snapshot.data.docs[position].id;
+          timesCollectionDB.doc(itemId).delete();
+        });
+      },
+    );
+  }
+
+  //Widget that creates a list for the times of each swimmer
+  Widget timesListWidget() {
+    //Collection of times, each swimmer has a collection of times, so each swimmer has an individual list
+    timesCollectionDB = FirebaseFirestore.instance.collection('TIMES').doc(userID).collection('TIMES');
+    return Expanded(
+        child:
+        StreamBuilder(stream: timesCollectionDB.snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              return ListView.builder(
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (BuildContext context, int position) {
+                    //Calls the tile widget to create a tile so the time can be formatted and added to the list
+                    return timesTileWidget(snapshot, position);
+                  }
+              );
+            })
+    );
+  }
 
 
+  //== END OF TIMES PAGE WIDGETS ==
+
+
+
+
+
+// == AUTHENTICATION, LOGIN/LOGOUT, and MAINSCREEN CODE ==
+
+
+  //Code for the logout button that appears on the main screen and the login screen
   Widget logoutButton() {
     return ElevatedButton(
         onPressed: ()
         async {
-          //setState(() async {
+          setState(() async {
           await FirebaseAuth.instance.signOut();
           print ("Button Logout");
-          // });
+          });
         },
         child: Text(
           'Logout',
@@ -166,20 +302,29 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
+  //Widget for the main screen
   Widget mainScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Swim Team Name"),
+        leading: Image(image: AssetImage('graphics/dartmouthlogo.png')),
+        title: Text(
+            "Dartmouth Swim & Dive",
+                style: TextStyle(
+                  fontSize: 30.0,
+            fontWeight: FontWeight.bold,
+        ),
+        ),
       ),
       body: Container(
+        //The main screen calls the swimmer input widget to create the main screen layout
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: Column(
           children: [
-            itemInputWidget(),
+            swimmerInputWidget(),
             SizedBox(height: 40,),
-            itemListWidget(),
+            //swimmerInputWidget(),
             logoutButton(),
           ],
         ),
@@ -187,6 +332,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
+  //Widget that lays out the login screen for authentication
   Widget loginScreen() {
     return Scaffold(
       appBar: AppBar(
@@ -204,7 +350,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                 onPressed: ()
                 async {
                   //setState(() async {
-                  // do authenication
+                  // do authenication, wait for validation
                   userCredential = await signInWithGoogle();
                   userID = userCredential.user.uid;
                   print ("Button onPressed DONE");
@@ -215,6 +361,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                   style: TextStyle(fontSize: 20),
                 )
             ),
+            //Calls the logout button widget
             logoutButton(),
           ],
         ),
@@ -251,6 +398,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
         if (snapshot.hasData) {
           print("User already logged in");
           //User id is added to the user authentication space on the firebase console
+          //Creates the screen based on who the current user is
           userID = FirebaseAuth.instance.currentUser.uid;
           return mainScreen();
         }
