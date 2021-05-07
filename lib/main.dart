@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'teammember.dart';
-import 'popup_screen.dart';
+
 
 
 // Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
@@ -48,8 +48,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
   String swimmer_id;
 
 
- //== SWIMMER PAGE WIDGETS ==
-
+  //SWIMMER PAGE CODE
 
   //Text field widget for entering a swimmer
   Widget nameTextFieldWidget() {
@@ -66,7 +65,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Button to add the swimmer to the list
+//Button to add the swimmer to the list
   Widget addButtonWidget() {
     return SizedBox(
       child: ElevatedButton(
@@ -79,12 +78,12 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
             //});
           },
           child: IconButton( //icon of a plus sign, when clicked on adds the swimmer to the list
-            icon: const Icon(Icons.add)
+              icon: const Icon(Icons.add)
           )),
     );
   }
 
-  //The input widget for the swimmers, calls the text field and add button widgets for each swimmer created
+//The input widget for the swimmers, calls the text field and add button widgets for each swimmer created
   Widget swimmerInputWidget() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,18 +96,18 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Tile widget that holds the information gathered about each swimmer
+//Tile widget that holds the information gathered about each swimmer
   Widget swimmerTileWidget(snapshot, position) {
     return ListTile(
       leading:
-        Image(image: AssetImage(snapshot.data.docs[position]['swim_image'])),
+      Image(image: AssetImage(snapshot.data.docs[position]['swim_image'])),
       //Time icon, when clicked on shows a list of the swimmer's times in a dialog pop-up box
       trailing: IconButton (
-          icon : const Icon(Icons.access_time),
-          onPressed: (){
-            swimmer_id = snapshot.data.docs[position].id;
-            viewTimes();
-          },
+        icon : const Icon(Icons.access_time),
+        onPressed: (){
+          swimmer_id = snapshot.data.docs[position].id;
+          viewTimes();
+        },
       )
       ,
       //A snapshot is taken of the data at that position in the list
@@ -124,16 +123,16 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //List widget for the swimmers to be added to
+//List widget for the swimmers to be added to
   Widget swimmerListWidget() {
     //Collection of users, each user has a collection of items, so each user has an individual list
     //swimmersCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('ITEMS');
     return Expanded(
         child:
-            //calls the tile widget to create a tile for each swimmer added to the list
+        //calls the tile widget to create a tile for each swimmer added to the list
         StreamBuilder(stream: swimmersCollectionDB.snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          //print(snapshot.data.docs.length);
+              //print(snapshot.data.docs.length);
               return ListView.builder(
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (BuildContext context, int position) {
@@ -146,15 +145,12 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //== END OF SWIMMER PAGE WIDGETS ==
+//== END OF SWIMMER PAGE WIDGETS ==
 
 
-
-
-  //== TIMES PAGE WIDGETS ==
-
+  //TIMES PAGE CODE
   //Pop-up dialog box from Times button
-  //@override
+//@override
   Widget viewTimes(){
     int _sizeSelected = 1;
     showDialog( //Creates a popup window
@@ -178,7 +174,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                         hintStyle: TextStyle(fontSize: 22, color: Colors.black),
                       ),
                     ),
-                  ElevatedButton( //When clicked adds the time to the swimmer's times list
+                    ElevatedButton( //When clicked adds the time to the swimmer's times list
                       child: Text('Add Time'),
                       onPressed: () async {
                         await timesCollectionDB.add({'time_input': _newTimeTextField.text, 'swimmer_id': swimmer_id}).then((value) => _newTimeTextField.clear());
@@ -187,11 +183,17 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
 
                         });
                       },
-                  ),
+                    ),
                     //Call to the times list widget
-                    timesListWidget()
+                    timesListWidget(),
+                    ElevatedButton( //When clicked closes the dialog view
+                      child: Text('Close'),
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    ),
 
-                    ],
+                  ],
                 ),
               )
           );
@@ -199,7 +201,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Widget that creates the tile format for each time entered for swimmer
+//Widget that creates the tile format for each time entered for swimmer
   Widget timesTileWidget(snapshot, position) {
     return ListTile(
       title: Text(snapshot.data.docs[position]['time_input']),
@@ -214,7 +216,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Widget that creates a list for the times of each swimmer
+//Widget that creates a list for the times of each swimmer
   Widget timesListWidget() {
     //Collection of times, each swimmer has a collection of times, so each swimmer has an individual list
     //timesCollectionDB = FirebaseFirestore.instance.collection('TIMES').doc(userID).collection('TIMES');
@@ -226,8 +228,8 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (BuildContext context, int position) {
                     if(snapshot.data.docs[position]['swimmer_id'] == swimmer_id){
-                    //Calls the tile widget to create a tile so the time can be formatted and added to the list
-                    return timesTileWidget(snapshot, position);
+                      //Calls the tile widget to create a tile so the time can be formatted and added to the list
+                      return timesTileWidget(snapshot, position);
                     }
                     else{
                       return SizedBox.shrink();
@@ -240,9 +242,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
   }
 
 
-  //== END OF TIMES PAGE WIDGETS ==
-
-
+//== END OF TIMES PAGE WIDGETS ==
 
 
 
