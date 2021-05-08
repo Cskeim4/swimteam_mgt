@@ -1,17 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-//import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+//Import the team member class
 import 'teammember.dart';
 
+// @author, Clara Skeim
+//SWIM TEAM MGT VERSION 1
 
 
 // Sample code from https://github.com/pythonhubpy/YouTube/blob/Firebae-CRUD-Part-1/lib/main.dart#L19
 // video https://www.youtube.com/watch?v=SmmCMDSj8ZU&list=PLtr8DfMFkiJu0lr1OKTDaoj44g-GGnFsn&index=10&t=291s
 
+
+//Set up the state and initialization for the application
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -19,7 +23,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  // Root widget for the app
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -37,25 +41,29 @@ class FirebaseDemo extends StatefulWidget {
   _FirebaseDemoState createState() => _FirebaseDemoState();
 }
 
+//Where Our Code Will Go
+//Note: Widgets broken into separate methods to allow for better organization
 class _FirebaseDemoState extends State<FirebaseDemo> {
+
   //Initialize the DB collections and text fields
   final TextEditingController _newSwimmerTextField = TextEditingController();
   final TextEditingController _newTimeTextField = TextEditingController();
-
   CollectionReference swimmersCollectionDB;
   CollectionReference timesCollectionDB;
   //List<String> itemList = [];
+
+  //Variable to hold the firestore id assigned for each swimmer
   String swimmer_id;
 
 
-  //SWIMMER PAGE CODE
+  // == CODE FOR THE SWIMMER PAGE ==
 
   //Text field widget for entering a swimmer
   Widget nameTextFieldWidget() {
     return SizedBox(
       width: MediaQuery.of(context).size.width / 1.7,
       child: TextField(
-        controller: _newSwimmerTextField,
+        controller: _newSwimmerTextField, //sets the controller for editing the text field
         style: TextStyle(fontSize: 22, color: Colors.black),
         decoration: InputDecoration(
           hintText: "Enter a Swimmer: ",
@@ -89,27 +97,35 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        nameTextFieldWidget(),
+        nameTextFieldWidget(), //call to separated widget method
         SizedBox(width: 10,),
         addButtonWidget(),
       ],
     );
   }
 
+  //Time button widget, when clicked on displays a dialog box with a list of the swimmer's times
+  Widget timeIconButton(snapshot, position){
+    return IconButton (
+      icon : const Icon(Icons.access_time),
+      onPressed: (){
+        //Gets the swimmer id of the swimmer pressed in order to view the times of the specified swimmer
+        swimmer_id = snapshot.data.docs[position].id;
+        viewTimes();
+      },
+    );
+  }
+
+
 //Tile widget that holds the information gathered about each swimmer
   Widget swimmerTileWidget(snapshot, position) {
     return ListTile(
       leading:
       Image(image: AssetImage(snapshot.data.docs[position]['swim_image'])),
+
       //Time icon, when clicked on shows a list of the swimmer's times in a dialog pop-up box
-      trailing: IconButton (
-        icon : const Icon(Icons.access_time),
-        onPressed: (){
-          swimmer_id = snapshot.data.docs[position].id;
-          viewTimes();
-        },
-      )
-      ,
+      trailing: timeIconButton(snapshot, position), //call to the separated icon button method
+
       //A snapshot is taken of the data at that position in the list
       title: Text(snapshot.data.docs[position]['item_name']),
       onLongPress: () {
@@ -145,12 +161,45 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-//== END OF SWIMMER PAGE WIDGETS ==
+// == END OF SWIMMER PAGE WIDGETS/CODE ==
 
 
-  //TIMES PAGE CODE
-  //Pop-up dialog box from Times button
-//@override
+// == CODE FOR THE TIMES PAGE ==
+
+  //Text field widget for the swimmer times to be entered in to
+  Widget timeTextField(){
+    return TextField(
+      controller: _newTimeTextField,
+      style: Theme.of(context).textTheme.headline4,
+      decoration: InputDecoration(
+        hintText: "Enter a Time:",
+        hintStyle: TextStyle(fontSize: 22, color: Colors.black),
+      ),
+    );
+  }
+
+  //Add time button widget, adds the entered time to the list of times for the chosen swimmer
+  Widget addTimeButton(){
+    return ElevatedButton( //When clicked adds the time to the swimmer's times list
+      child: Text('Add Time'),
+      onPressed: () async {
+        await timesCollectionDB.add({'time_input': _newTimeTextField.text, 'swimmer_id': swimmer_id}).then((value) => _newTimeTextField.clear());
+        //await timesCollectionDB.add({'time_input': _newTimeTextField.text}).then((value) => _newSwimmerTextField.clear());
+      },
+    );
+  }
+
+  //Close button, when pressed closes the dialog box that shows a list of the swimmer's times
+  Widget closeDialogButton(){
+    return ElevatedButton( //When clicked closes the dialog pop-up view
+      child: Text('Close'),
+      onPressed: (){
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  //Pop-up dialog box widget for the Time button, appears when the time icon is clicked
   Widget viewTimes(){
     int _sizeSelected = 1;
     showDialog( //Creates a popup window
@@ -166,32 +215,15 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                       'Times',
                       style: Theme.of(context).textTheme.headline4,
                     ),
-                    TextField(
-                      controller: _newTimeTextField,
-                      style: Theme.of(context).textTheme.headline4,
-                      decoration: InputDecoration(
-                        hintText: "Enter a Time:",
-                        hintStyle: TextStyle(fontSize: 22, color: Colors.black),
-                      ),
-                    ),
-                    ElevatedButton( //When clicked adds the time to the swimmer's times list
-                      child: Text('Add Time'),
-                      onPressed: () async {
-                        await timesCollectionDB.add({'time_input': _newTimeTextField.text, 'swimmer_id': swimmer_id}).then((value) => _newTimeTextField.clear());
-                        //await timesCollectionDB.add({'time_input': _newTimeTextField.text}).then((value) => _newSwimmerTextField.clear());
-                        setState(() { //Tells the program there is data that needs updating
 
-                        });
-                      },
-                    ),
+                    timeTextField(), //calls to a separated widget method
+
+                    addTimeButton(),
+
                     //Call to the times list widget
                     timesListWidget(),
-                    ElevatedButton( //When clicked closes the dialog view
-                      child: Text('Close'),
-                      onPressed: (){
-                        Navigator.pop(context);
-                      },
-                    ),
+
+                    closeDialogButton()
 
                   ],
                 ),
@@ -207,10 +239,10 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
       title: Text(snapshot.data.docs[position]['time_input']),
       //If there is a long press on a time in the list, it will be deleted
       onLongPress: () {
-        setState(() {
+        setState(() { //tells firebase that data has been updated
           print("You tapped at position =  $position");
           String itemId = snapshot.data.docs[position].id;
-          timesCollectionDB.doc(itemId).delete();
+          timesCollectionDB.doc(itemId).delete(); //based on the position tapped, delete the listed time
         });
       },
     );
@@ -227,6 +259,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
               return ListView.builder(
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (BuildContext context, int position) {
+                    //if the swimmer id of the position selected in the list matches the id on the given list of times
                     if(snapshot.data.docs[position]['swimmer_id'] == swimmer_id){
                       //Calls the tile widget to create a tile so the time can be formatted and added to the list
                       return timesTileWidget(snapshot, position);
@@ -234,20 +267,16 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
                     else{
                       return SizedBox.shrink();
                     }
-
                   }
               );
             })
     );
   }
 
-
-//== END OF TIMES PAGE WIDGETS ==
-
+// == END OF THE TIMES PAGE WIDGETS/CODE ==
 
 
-// == AUTHENTICATION, LOGIN/LOGOUT, and MAIN SCREEN CODE ==
-
+// == LOGIN/LOGOUT PAGE AND MAIN SCREEN CODE ==
 
   //Code for the logout button that appears on the main screen and the login screen
   Widget logoutButton() {
@@ -255,7 +284,7 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
         onPressed: ()
         async {
           setState(() async {
-          await FirebaseAuth.instance.signOut();
+          await FirebaseAuth.instance.signOut(); //when the button is pressed, sign out of the firebase instance
           print ("Button Logout");
           });
         },
@@ -266,33 +295,20 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  //Widget for the main screen
-  Widget mainScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        leading: Image(image: AssetImage('graphics/dartmouthlogo.png')),
-        title: Text(
-            "Dartmouth Swim & Dive",
-                style: TextStyle(
-                  fontSize: 30.0,
-            fontWeight: FontWeight.bold,
-        ),
-        ),
-      ),
-      body: Container(
-        //The main screen calls the swimmer input widget to create the main screen layout
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          children: [
-            swimmerInputWidget(),
-            SizedBox(height: 40,),
-            swimmerListWidget(),
-            logoutButton(),
-          ],
-        ),
-      ),
+  //Google login button widget, checks the user credentials in order to log in the user
+  Widget loginWithGoogleButton(){
+    return ElevatedButton(
+        onPressed: ()
+        async {
+          // Wait for the go ahead from google authentication
+          userCredential = await signInWithGoogle();
+          userID = userCredential.user.uid;
+          print ("Button onPressed DONE");
+        },
+        child: Text(
+          'Log in with Google',
+          style: TextStyle(fontSize: 20),
+        )
     );
   }
 
@@ -310,22 +326,8 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Not Logged in"),
-            ElevatedButton(
-                onPressed: ()
-                async {
-                  //setState(() async {
-                  // do authenication, wait for validation
-                  userCredential = await signInWithGoogle();
-                  userID = userCredential.user.uid;
-                  print ("Button onPressed DONE");
-                  // });
-                },
-                child: Text(
-                  'Log in with Google',
-                  style: TextStyle(fontSize: 20),
-                )
-            ),
-            //Calls the logout button widget
+            loginWithGoogleButton(),
+            //Calls the logout button widget method
             logoutButton(),
           ],
         ),
@@ -333,46 +335,90 @@ class _FirebaseDemoState extends State<FirebaseDemo> {
     );
   }
 
-  // ======== Added for Authentication  ========
-  //Checks user credentials in order to sign them in as a user
+  //Widget for the container on the main screen of the application
+  Widget mainscreenContainer(){
+    return Container(
+      //The main screen calls the swimmer input widget to create the main screen layout
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        children: [
+          swimmerInputWidget(), //calls to separated widgets that make up the main screen
+          SizedBox(height: 40,),
+          swimmerListWidget(),
+          logoutButton(),
+        ],
+      ),
+    );
+  }
 
+  //Widget for the main screen
+  Widget mainScreen() {
+    return Scaffold(
+      appBar: AppBar(
+        leading: Image(image: AssetImage('graphics/dartmouthlogo.png')),
+        title: Text(
+            "Dartmouth Swim & Dive",
+                style: TextStyle(
+                  fontSize: 30.0,
+            fontWeight: FontWeight.bold,
+        ),
+        ),
+      ),
+      body: mainscreenContainer() //calls to the mainscreen container widget method above
+    );
+  }
+
+  // == END OF LOGIN/LOGOUT AND MAIN SCREEN PAGE WIDGETS/CODE ==
+
+
+  // == GOOGLE AUTHENTICATION CODE ==
+
+  //Checks user credentials in order to sign them in
   UserCredential userCredential;
   String userID;
 
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
+    // Start the authentication process
     final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
-    // Obtain the auth details from the request
+    // Get the sign in specifics from the request
     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-    // Create a new credential
+    // Create a new user credential object
     final GoogleAuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    // Once signed in, return the UserCredential
+    // Return the credential once the user has been signed in
     return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  // === Main Build Method ===
+  // == END OF GOOGLE AUTH CODE ==
+
+
+  // == MAIN BUILD METHOD CODE ==
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData) { //check if the user is logged in already
           print("User already logged in");
-          //User id is added to the user authentication space on the firebase console
-          //Creates the screen based on who the current user is
+          //Add the id of the user who is signed in to the firebase console
+          //Modifies the screen to fit the user who is currently logged in
           userID = FirebaseAuth.instance.currentUser.uid;
           swimmersCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('SWIMMERS');
           timesCollectionDB = FirebaseFirestore.instance.collection('USERS').doc(userID).collection('TIMES');
           return mainScreen();
         }
         else {
-          return loginScreen();
+          return loginScreen(); //if the user is not logged in, return to the login screen
         }
       },
     );
   }
+
+  // == END OF MAIN BUILD METHOD CODE/WIDGETS ==
 
 }
