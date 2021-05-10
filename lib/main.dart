@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'teammember.dart';
 
 // @author, Clara Skeim
+//CIS 3334 FINAL PROJECT
 //SWIM TEAM MGT VERSION 1
 
 
