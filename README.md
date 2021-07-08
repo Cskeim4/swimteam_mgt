@@ -1,6 +1,6 @@
 # swimteam_mgt
 
-This was my final project for CIS 3334. This application was created for swim team coaches to manage the athletes on their team. Each swimmer has a profile picture, name, year, etc. Also, each swimmer has an individual list to keep track of their times for each event. 
+This was my final project for CIS 3334, programmed primarily in Flutter. This application was created for swim team coaches to manage the athletes on their team. Each swimmer has a profile picture, name, year, etc. Also, each swimmer has an individual list to keep track of their times for each event. 
 
 Github Link to Sprint 3: https://github.com/Cskeim4/swimteam_mgt 
 
